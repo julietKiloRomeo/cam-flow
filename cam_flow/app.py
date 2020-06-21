@@ -17,25 +17,41 @@ from cam_flow import backend
 
 
 def make_check(question, default, callback):
-    txt = Label(text=question, max_lines=2, shorten=True, text_size=(600, None), size_hint=(4, 1))
-    button = CheckBox(active=default, on_press=callback, size_hint=(1, 1))
+    txt = Label(
+        text=question,
+        max_lines=2,
+        shorten=True,
+        text_size=(500, None),
+    )
+    button = CheckBox(
+        active=default,
+        on_press=callback,
+        size_hint=(0.2, 1),
+    )
 
-    row = BoxLayout(orientation="horizontal", spacing=10, size_hint=(0.9, 1.0))
+    row = BoxLayout(
+        orientation="horizontal",
+    )
     row.add_widget(txt)
     row.add_widget(button)
     return row, button
 
 
 def make_path_check(img, callback):
-    path = Button(text=img, size_hint=(4, 1), on_press=callback)
+    path = Button(
+        text=img,
+        on_press=callback,
+    )
     check = CheckBox(
-        size_hint=(1, 1),
         disabled=True,
         background_checkbox_disabled_down="atlas://data/images/defaulttheme/checkbox_on",
         background_checkbox_disabled_normal="atlas://data/images/defaulttheme/checkbox_off",
+        size_hint=(0.2, 1),
     )
 
-    row = BoxLayout(orientation="horizontal", spacing=10, padding=5, size_hint=(0.9, 1))
+    row = BoxLayout(
+        orientation="horizontal",
+    )
     row.add_widget(path)
     row.add_widget(check)
     return row, check
@@ -45,39 +61,58 @@ def make_path_check(img, callback):
 class CamApp(App):
     COLOURS = {
         backend.FlowCell.STATUS.OUT_OF_SPEC: (1.0, 0.3, 0.3, 0.1),
-        backend.FlowCell.STATUS.IN_PROGRESS: (0.2, 0.2, 0.8, 0.6),
-        backend.FlowCell.STATUS.DONE: (0.4, 1.0, 0.4, 0.6),
-        "ACTIVE": (0.0, 0.8, 0.0, 0.9),
+        backend.FlowCell.STATUS.IN_PROGRESS: (0.2, 0.2, 0.8, 0.8),
+        backend.FlowCell.STATUS.DONE: (0.4, 1.0, 0.4, 0.8),
+        "ACTIVE": (0.4, 0.9, 0.4, 0.9),
     }
     INITIAL_CELL = ("C", 1)
     def build(self):
-        self.stack = backend.Stack("dummy")
+        self.stack = backend.Stack("SOMESTACK")
         self.active_cell = None
 
 
 
         self.title = "Cam Flow"
-        self.title_bar = BoxLayout(
-            orientation="horizontal", spacing=20, padding=8, size_hint=(1.0, 0.1)
-        )
-        self.stack_input = TextInput(text="", multiline=False, on_text_validate=self._new_stack)
-        self.title_bar.add_widget(self.stack_input)
 
-        self.main = GridLayout(rows=1, cols=2, spacing=20, size_hint=(1.0, 0.9))
-        self.matrix = GridLayout(rows=12, cols=8, spacing=3, size_hint=(2.0, 0.9))
-        self.questions = BoxLayout(orientation="vertical", spacing=10, size_hint=(4.0, 0.9))
+        self.left = BoxLayout(
+            orientation="vertical",
+            size_hint=(0.6, 1),
+        )
+        self.spacing = BoxLayout(
+            orientation="vertical",
+            size_hint=(0.4, 1),
+        )
+
+        self.stack_input = TextInput(
+            text=self.stack.name,
+            multiline=False,
+            on_text_validate=self._new_stack,
+            size_hint=(1, 0.1),
+        )
+        self.matrix = GridLayout(
+            rows=12,
+            cols=8,
+            spacing=3,
+        )
+
+        self.left.add_widget(self.stack_input)
+        self.left.add_widget(self.matrix)
+
+
+        self.main = BoxLayout(spacing=0, orientation="horizontal" )
+        self.questions = BoxLayout(
+            orientation="vertical",
+            spacing=20,
+        )
 
         self._make_matrix()
         self._make_questions()
         self.select_cell(CamApp.INITIAL_CELL)(self.cell_buttons[CamApp.INITIAL_CELL])
         self._make_paths()
 
-        self.main.add_widget(self.matrix)
+        self.main.add_widget(self.left)
+        self.main.add_widget(self.spacing)
         self.main.add_widget(self.questions)
-
-        self.root = BoxLayout(orientation="vertical", padding=20,)
-        self.root.add_widget(self.title_bar)
-        self.root.add_widget(self.main)
 
         self._keyboard = Window.request_keyboard(self._keyboard_closed, self.matrix, "text")
         self._keyboard.bind(on_key_down=self._on_keyboard_down)
@@ -87,7 +122,7 @@ class CamApp(App):
 
         Window.size = (1400, 500)
 
-        return self.root
+        return self.main
     
 
     def _new_stack(self, *args):
@@ -147,11 +182,14 @@ class CamApp(App):
                 self.active_cell.status = backend.FlowCell.STATUS.IN_PROGRESS
             elif self.active_cell.status == backend.FlowCell.STATUS.IN_PROGRESS:
                 self.active_cell.status = backend.FlowCell.STATUS.OUT_OF_SPEC
+            self.active_cell.dump_questions()
         elif char in ["1","2","3","4","5"]:
             i = int(char) - 1
             q = list(backend.FlowCell.DEFAULT_ANSWERS.keys())[i]
             current_val = self.question_boxes[q].active
             self.question_boxes[q].active = not current_val
+            self.active_cell.questions[q] = self.question_boxes[q].active
+            self.active_cell.dump_questions()
 
         self.update_matrix()
 
@@ -204,8 +242,9 @@ class CamApp(App):
 
     def update_matrix(self):
         for _coordinate, button in self.cell_buttons.items():
-            status = self.stack.cells[_coordinate].status
-            button.background_color = self.COLOURS[status]
+            cell = self.stack.cells[_coordinate]
+            cell.load_questions()
+            button.background_color = self.COLOURS[cell.status]
 
         self.cell_buttons[self.active_coordinate].background_color = self.COLOURS[
             "ACTIVE"

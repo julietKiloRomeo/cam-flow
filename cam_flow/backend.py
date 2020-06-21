@@ -44,11 +44,17 @@ class FlowCell:
         self.mkdir()
         with (self._base_path / "questions.json").open("w") as f:
             json.dump(self.questions, f, sort_keys=True, indent=4)
+        with (self._base_path / ".state").open("w") as f:
+            json.dump(self.status.name, f)
+
 
     def load_questions(self):
         try:
             with (self._base_path / "questions.json").open("r") as f:
                 self.questions = json.load(f)
+            with (self._base_path / ".state").open("r") as f:
+                name = json.load(f)
+                self.status = FlowCell.STATUS[name]
         except:
             pass
 
