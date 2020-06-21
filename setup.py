@@ -15,5 +15,5 @@ setup(
     packages=find_packages(),
     use_scm_version=True,
     setup_requires=["setuptools_scm"],
-    entry_points={"console_scripts": ["cam-flow = cam_flow:main",],},
+    entry_points={"console_scripts": ["cam-flow = cam_flow.app:main",],},
 )

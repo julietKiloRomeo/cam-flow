@@ -34,9 +34,11 @@ class FlowCell:
         }  # pass by value!
         self.status = FlowCell.STATUS.IN_PROGRESS
 
-        self._base_path = pathlib.Path(
-            f"/home/jkr/projects/cam-flow/reports/{self.stack}/{self.stack}-{self.grid_position}{self.model}"
-        )
+        self._base_path = self.stack._base_path / self.label
+
+    @property
+    def label(self):
+        return f"{self.stack.name}-{self.grid_position}{self.model}"
 
     def dump_questions(self):
         self.mkdir()
@@ -104,12 +106,17 @@ class Stack:
 
     def __init__(self, name):
         self.name = name
+        self._base_path = pathlib.Path.cwd() / f"{self.name}"
+
         self.cells = {
-            (row, column): FlowCell(self.name, f"{row}{column}")
+            (row, column): FlowCell(self, f"{row}{column}")
             for row, column in product(self.rows, self.columns)
         }
+
         for coordinate in self.always_missing:
             self.cells[coordinate].status = FlowCell.STATUS.OUT_OF_SPEC
+
+
 
     @property
     def _state_matrix(self):
@@ -132,6 +139,13 @@ class Stack:
 
             rep += row_rep + "\n"
         return rep
+
+    @property
+    def label_list(self):
+        """Represent the stack as a list of flow-cell labels
+        """
+        return [cell.label for cell in self.cells.values() if not cell.status == FlowCell.STATUS.OUT_OF_SPEC]
+
 
     def mkdirs(self):
         """Create a folder for every flow cell that is not out-of-spec
