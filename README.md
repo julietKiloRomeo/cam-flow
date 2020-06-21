@@ -9,25 +9,26 @@ Writing hardcoded paths is error-prone. This gui helps make paths and folders, s
 
 Make a conda env with dependencies:
 ```
- > conda create --name cam-flow python=3.8
- > conda activate cam-flow
- (cam-flow) > conda install -c conda-forge kivy pyperclip git
+ > $ conda create --name cam-flow python=3.8
+ > $ conda activate cam-flow
+ (cam-flow) > $ conda install -c conda-forge kivy pyperclip git
 ```
 
 Get the python package:
 ```
- (cam-flow) > cd /path/to/folder/where/you/want/package
- (cam-flow) > git clone https://github.com/julietKiloRomeo/cam-flow.git
- (cam-flow) > cd cam-flow
- (cam-flow) > pip install .
+ (cam-flow) > $ cd /path/to/folder/where/you/want/package
+ (cam-flow) > $ git clone https://github.com/julietKiloRomeo/cam-flow.git
+ (cam-flow) > $ cd cam-flow
+ (cam-flow) > $ pip install .
 ```
 
 ## Running the GUI
 
+Launch an anaconda powershell (Press windows-key, write anac, select "Anaconda Powershell").
 ```
- > cd /path/to/folder/where/you/want/to/put/stackfiles
- > conda activate cam-flow
- (cam-flow) > cam-flow
+ > $ cd /path/to/folder/where/you/want/to/put/stackfiles
+ > $ conda activate cam-flow
+ (cam-flow) > $ cam-flow
 ```
 ![Screenshot](assets/screenshot.png?raw=true)
 
