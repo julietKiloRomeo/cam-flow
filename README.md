@@ -36,6 +36,8 @@ Start by entering the name of the stack. Click the mouse inside the text field i
 
 Navigate the flow-cell matrix using the arrow keys or the mouse. Mark a flow-cell as out-of-spec with the TAB key.
 
+Mark all cells as out-of-spec with ctrl-X and mark all as in-progress with shift-ctrl-X.
+
 Press ctrl-P to save a list of labels to the stack-folder (/folder-where-you-started-the-gui/stackname/labels.txt).
 
 Get a path to the top/bottom/other image copied to the clipboard by pressing the corresponding button. The folder will be created if it is not already present. The checkbox cannot be toggled - it will fill out automatically when an image is saved to the correct path.
