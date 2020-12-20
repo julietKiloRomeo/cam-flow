@@ -41,12 +41,20 @@ class FlowCell:
         return f"{self.stack.name}-{self.grid_position}{self.model}"
 
     def dump_questions(self):
+        return None
+        # do not automatically save questions for now...
         self.mkdir()
         with (self._base_path / "questions.json").open("w") as f:
             json.dump(self.questions, f, sort_keys=True, indent=4)
         with (self._base_path / ".state").open("w") as f:
             json.dump(self.status.name, f)
 
+
+    def toggle(self):
+        if self.status == FlowCell.STATUS.OUT_OF_SPEC:
+            self.status = FlowCell.STATUS.IN_PROGRESS
+        elif self.status == FlowCell.STATUS.IN_PROGRESS:
+            self.status = FlowCell.STATUS.OUT_OF_SPEC
 
     def load_questions(self):
         try:
@@ -66,7 +74,7 @@ class FlowCell:
         self._base_path.mkdir(exist_ok=True, parents=True)
 
     def img_path(self, img):
-        self.mkdir()
+        #self.mkdir()
         return self._base_path / f"{img}.jpg"
 
     def encoded_img(self, img):
@@ -76,6 +84,12 @@ class FlowCell:
             return base64.b64encode(image_file.read())
 
     def as_payload(self):
+        """Make an example payload for http according to
+
+        user and report ID have been hard-coded
+
+        the package format sniffed from qc-api.sbtinstruments.com
+        """
         # https://qc-api.sbtinstruments.com/reports/?update=1
         answers = {**self.questions}
         for i, img in enumerate(FlowCell.IMAGES, start=1):
@@ -122,7 +136,14 @@ class Stack:
         for coordinate in self.always_missing:
             self.cells[coordinate].status = FlowCell.STATUS.OUT_OF_SPEC
 
-
+    def on(self):
+        for cell in self.cells.values():
+            cell.status = FlowCell.STATUS.IN_PROGRESS
+        for coordinate in self.always_missing:
+            self.cells[coordinate].status = FlowCell.STATUS.OUT_OF_SPEC
+    def off(self):
+        for cell in self.cells.values():
+            cell.status = FlowCell.STATUS.OUT_OF_SPEC
 
     @property
     def _state_matrix(self):

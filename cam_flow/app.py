@@ -17,6 +17,8 @@ from cam_flow import backend
 
 
 def make_check(question, default, callback):
+    """Make labels and checkboxes
+    """
     txt = Label(
         text=question,
         max_lines=2,
@@ -38,8 +40,10 @@ def make_check(question, default, callback):
 
 
 def make_path_check(img, callback):
+    """Make buttons for image paths
+    """
     path = Button(
-        text=img,
+        text= f"{img} path to clipboard",
         on_press=callback,
     )
     check = CheckBox(
@@ -178,11 +182,15 @@ class CamApp(App):
                 self.active_cell.as_payload()
             )
         elif char == "tab":
-            if self.active_cell.status == backend.FlowCell.STATUS.OUT_OF_SPEC:
-                self.active_cell.status = backend.FlowCell.STATUS.IN_PROGRESS
-            elif self.active_cell.status == backend.FlowCell.STATUS.IN_PROGRESS:
-                self.active_cell.status = backend.FlowCell.STATUS.OUT_OF_SPEC
+            self.active_cell.toggle()
             self.active_cell.dump_questions()
+
+        elif char == "x" and "ctrl" in modifiers:
+            if "shift" in modifiers:
+                self.stack.on()
+            else:
+                self.stack.off()
+
         elif char in ["1","2","3","4","5"]:
             i = int(char) - 1
             q = list(backend.FlowCell.DEFAULT_ANSWERS.keys())[i]
@@ -196,6 +204,7 @@ class CamApp(App):
         return True
 
     def print_labels(self):
+        self.stack.mkdirs()
         with (self.stack._base_path / "labels.txt").open("w") as f:
             for label in self.stack.label_list:
                 f.write(label+"\n")
@@ -222,6 +231,7 @@ class CamApp(App):
     def _make_paths(self):
         def cp(img):
             def f(instance):
+                """ Put an image path on clipboard """
                 pyperclip.copy(str(self.active_cell.img_path(img).resolve()))
 
             return f
